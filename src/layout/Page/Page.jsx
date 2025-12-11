@@ -37,6 +37,7 @@ import { generateProjectsList } from '../../utils/projects'
 import { fetchProjects } from '../../reducers/projectReducer'
 
 import './Page.scss'
+import ArkAgent from '../../components/ArkAgent/ArkAgent'
 
 const Page = () => {
   const [isNavbarPinned, setIsNavbarPinned] = useState(false)
@@ -120,6 +121,7 @@ const Page = () => {
           toggleConvertToYaml={() => dispatch(toggleYaml())}
         />
       )}
+      <ArkAgent />
     </>
   )
 }
