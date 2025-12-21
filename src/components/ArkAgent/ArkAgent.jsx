@@ -2,9 +2,16 @@ import './ArkAgent.scss'
 import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send } from 'lucide-react'
 import classNames from 'classnames'
+import { useSelector } from 'react-redux'
+import { convertToArkRequest, convertToArkResponse } from '../../utils/arkApiMapper'
 
 const ArkAgent = () => {
-  const [isOpen, setIsOpen] = useState(false)
+
+  const projectList = useSelector(state => state.projectStore.projects)
+  const projectsSummary = useSelector(state => state.projectStore.projectsSummary)
+  const nuclioFunctions = useSelector(store => store.nuclioStore.functions)
+
+  const [isOpen, setIsOpen] = useState(true)
   const [messages, setMessages] = useState([
     {
       id: '1',
@@ -26,22 +33,37 @@ const ArkAgent = () => {
   const handleSend = () => {
     if (!input.trim()) return
 
-    const userMessage = {
+    // TODO: Send request to Ark API
+    const message = convertToArkRequest(input, {projectList, projectsSummary, nuclioFunctions})
+
+    setMessages((prev) => [...prev, {
       id: Date.now().toString(),
       content: input,
-      role: 'user',
-    }
-
-    setMessages((prev) => [...prev, userMessage])
+      role: 'user'
+    }])
     setInput('')
 
+    // TODO: Handle response from Ark API
     setTimeout(() => {
-      const assistantMessage = {
+      const assistantMessage = convertToArkResponse(
+        {
+          'success': true,
+          'queryName': 'query-8v2c9',
+          'responses': [
+            {
+              'target': {
+                'type': 'agent',
+                'name': 'mlrun'
+              },
+              'content': 'Here are the details for the project "fraud-demo-normal-user":\n\n- Name: fraud-demo-normal-user\n- Created: 2025-10-21T17:28:00.952000\n- Labels: None\n- Annotations: None\n- Description: Not provided\n- Owner: normal-user\n- Goals: Not provided\n- Parameters:\n  - transaction_stream: v3io:///projects/fraud-demo-normal-user/streams/transaction\n  - events_stream: v3io:///projects/fraud-demo-normal-user/streams/events\n- Functions: Not provided\n- Workflows: Not provided\n- Artifacts: Not provided\n- Artifact Path: Not provided\n- Conda: ""\n- Source: git://github.com/mlrun/demo-fraud.git\n- Subpath: Not provided\n- Origin URL: git://github.com/mlrun/demo-fraud.git\n- Desired State: online\n- Custom Packagers: Not provided\n- Default Image: Not provided\n- Build: Not provided\n- Default Function Node Selector: {}\n- Load Source On Run: true\n- Status State: online\n\nOrigin URL: git://github.com/mlrun/demo-fraud.git'
+            }
+          ]
+        }      )
+      setMessages((prev) => [...prev, {
         id: (Date.now() + 1).toString(),
-        content: "Thanks for your message! I'm here to assist you.",
+        content: assistantMessage,
         role: 'assistant',
-      }
-      setMessages((prev) => [...prev, assistantMessage])
+      }])
     }, 1000)
   }
 
