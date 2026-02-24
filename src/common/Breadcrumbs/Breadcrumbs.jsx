@@ -62,7 +62,7 @@ const Breadcrumbs = ({ onClick = () => {} }) => {
           .find(pathItem => pathItem === tab.id)
       )
 
-      if (screen.id === MONITORING_APP_PAGE) {
+      if (screen?.id === MONITORING_APP_PAGE) {
         tab = {}
       }
 

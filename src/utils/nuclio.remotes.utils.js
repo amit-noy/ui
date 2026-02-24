@@ -30,16 +30,38 @@ const ensureNuclioRemote = async () => {
   return registerPromise
 }
 
-const loadNuclioApp = async () => {
-  await ensureNuclioRemote()
-  const module = await loadRemote('nuclio/App')
+// Strips internal route `id` fields and filters out index/catch-all routes
+// under `projects/:projectName` so Nuclio routes integrate cleanly into MLRun's router.
+const cleanRoutes = routes =>
+  routes.map(({ id, ...route }) => {
+    if (route.children) {
+      route.children = route.path === 'projects/:projectName'
+        ? cleanRoutes(route.children.filter(child => !child.index && child.path !== '*'))
+        : cleanRoutes(route.children)
+    }
+    return route
+  })
 
-  if (!module) {
-    throw new Error('[MF] Failed to load Nuclio application')
+const loadNuclioRoutes = async () => {
+  await ensureNuclioRemote()
+  const mod = await loadRemote('nuclio/router')
+
+  if (!mod?.router?.routes) {
+    throw new Error('[MF] Failed to load Nuclio router module')
   }
 
-  const component = module.default?.default || module.default || module
-  return { default: component }
+  return cleanRoutes(mod.router.routes)
 }
 
-export { ensureNuclioRemote, loadNuclioApp }
+const getNuclioItemName = pathname => {
+  const segments = pathname.split('/').filter(Boolean)
+  const functionsSegmentIndex = segments.indexOf('real-time-functions')
+
+  if (functionsSegmentIndex !== -1 && segments[functionsSegmentIndex + 1] && segments[functionsSegmentIndex + 1] !== 'new') {
+    return segments[functionsSegmentIndex + 1]
+  }
+
+  return ''
+}
+
+export { ensureNuclioRemote, loadNuclioRoutes, getNuclioItemName }

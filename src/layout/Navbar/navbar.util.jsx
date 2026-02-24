@@ -25,7 +25,6 @@ import {
   PROJECT_MONITOR,
   PROJECT_QUICK_ACTIONS_PAGE
 } from '../../constants'
-import { generateNuclioLink } from '../../utils'
 
 import APIIcon from 'igz-controls/images/navbar/mlrun-api-gateways.svg?react'
 import HomepageIcon from 'igz-controls/images/navbar/mlrun-project-home.svg?react'
@@ -125,14 +124,12 @@ export const getLinks = projectName => {
       label: 'Real-time functions',
       // Use relative path to stay in the Host app
       link: `${pathname}/real-time-functions`,
-      externalLink: false
     },
     {
       icon: <APIIcon />,
       id: 'api-gateways',
       label: 'API gateways',
       link: `${pathname}/api-gateways`,
-      externalLink: false
     }
   ]
 }

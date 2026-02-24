@@ -1,11 +1,11 @@
-/* mlrun-ui/src/components/RemoteNuclioRouteWrapper.tsx */
-import React, { useEffect, useState, Suspense } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
-import { ensureNuclioRemote, loadNuclioApp } from '../utils/nuclio.remotes.utils'
+import { useEffect, useMemo, useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 
-const RemoteNuclioApp = React.lazy(() => loadNuclioApp())
+import Breadcrumbs from '../common/Breadcrumbs/Breadcrumbs'
+import { ensureNuclioRemote, getNuclioItemName } from '../utils/nuclio.remotes.utils'
 
 const RemoteNuclioRouteWrapper = () => {
+  const location = useLocation()
   const [ready, setReady] = useState(false)
   const [error, setError] = useState(false)
 
@@ -21,17 +21,18 @@ const RemoteNuclioRouteWrapper = () => {
     void init()
   }, [])
 
+  const itemName = useMemo(() => getNuclioItemName(location.pathname), [location.pathname])
+
   if (error) return <div>Failed to load Nuclio UI</div>
   if (!ready) return <div>Loading Nuclio...</div>
 
   return (
-    <ErrorBoundary fallback={<div>Nuclio crashed</div>}>
-      <Suspense fallback={<div>Loading Nuclio...</div>}>
-        <div style={{ width: '100%', height: '1200px' }}>
-          <RemoteNuclioApp />
-        </div>
-      </Suspense>
-    </ErrorBoundary>
+    <div className="nuclio-wrapper">
+      <div className="content__header">
+        <Breadcrumbs itemName={itemName} />
+      </div>
+      <Outlet />
+    </div>
   )
 }
 
