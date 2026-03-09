@@ -122,7 +122,6 @@ export const getLinks = projectName => {
       icon: <NuclioIcon />,
       id: 'real-time-functions',
       label: 'Real-time functions',
-      // Use relative path to stay in the Host app
       link: `${pathname}/real-time-functions`,
     },
     {

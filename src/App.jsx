@@ -54,7 +54,6 @@ import {
   MONITOR_ALERTS_PAGE,
   MONITOR_JOBS_TAB,
   MONITOR_WORKFLOWS_TAB,
-  PIPELINE_SUB_PAGE,
   PROJECTS_SETTINGS_GENERAL_TAB,
   PROJECT_MONITOR,
   PROJECT_QUICK_ACTIONS_PAGE,
@@ -73,6 +72,7 @@ import RemoteNuclioRouteWrapper from './components/RemoteNuclioRouteWrapper'
 import 'reactflow/dist/style.css'
 import 'igz-controls/index.css'
 import './scss/main.scss'
+import RemoteNuclioRouteWrapper from './components/RemoteNuclio/RemoteNuclioRouteWrapper'
 
 const Page = lazyRetry(() => import('./layout/Page/Page'))
 const Datasets = lazyRetry(() => import('./components/Datasets/Datasets'))
@@ -173,6 +173,11 @@ const App = () => {
       <>
         <Route path="" element={<Page isHeaderShown={isHeaderShown} />}>
           <Route path="projects" element={<Projects />} />
+          <Route path="projects/:projectName">
+            <Route path="real-time-functions/*" element={<RemoteNuclioRouteWrapper />} />
+            <Route path="create-function/*" element={<RemoteNuclioRouteWrapper />} />
+            <Route path="api-gateways/*" element={<RemoteNuclioRouteWrapper />} />
+          </Route>
           <Route path={`projects/*/${JOBS_MONITORING_PAGE}/*`} element={<ProjectsJobsMonitoring />}>
             {[
               `${JOBS_MONITORING_JOBS_TAB}/:jobName/:jobId/:tab`,
@@ -344,14 +349,13 @@ const App = () => {
                 </Fragment>
               )
             )}
-            {[
-              `${REAL_TIME_PIPELINES_TAB}`,
-              `${REAL_TIME_PIPELINES_TAB}/${PIPELINE_SUB_PAGE}/:pipelineId`
-            ].map((path, index) => (
-              <Fragment key={index}>
-                <Route path={path} element={<RealTimePipelines />} />
-              </Fragment>
-            ))}
+            {[`${REAL_TIME_PIPELINES_TAB}`, `${REAL_TIME_PIPELINES_TAB}/:pipelineId/:tab`].map(
+              (path, index) => (
+                <Fragment key={index}>
+                  <Route path={path} element={<RealTimePipelines />} />
+                </Fragment>
+              )
+            )}
             <Route path="*" element={<Navigate to={MODELS_TAB} replace />} />
           </Route>
           {[
