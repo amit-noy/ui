@@ -17,7 +17,7 @@ illegal under applicable law, and the grant of the foregoing license
 under the Apache 2.0 license is conditioned upon your compliance with
 such restriction.
 */
-import React, { Fragment, Suspense, useEffect, useMemo, useState } from 'react'
+import React, { Fragment, Suspense } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Route,
@@ -65,9 +65,6 @@ import {
   JOBS_MONITORING_SCHEDULED_TAB,
   INACTIVE_JOBS_TAB
 } from './constants'
-
-import { loadNuclioRoutes } from './utils/nuclio.remotes.utils'
-import RemoteNuclioRouteWrapper from './components/RemoteNuclioRouteWrapper'
 
 import 'reactflow/dist/style.css'
 import 'igz-controls/index.css'
@@ -150,15 +147,6 @@ const App = () => {
   const isHeaderShown = localStorageService.getStorageValue('mlrunUi.headerHidden') !== 'true'
   const mlAppContainerClasses = classNames('ml-app-container', isHeaderShown && 'has-header')
 
-  const [nuclioRoutes, setNuclioRoutes] = useState(isNuclioModeDisabled ? [] : null)
-
-  useEffect(() => {
-    if (isNuclioModeDisabled) return
-    loadNuclioRoutes()
-      .then(routes => setNuclioRoutes(routes))
-      .catch(() => setNuclioRoutes([]))
-  }, [isNuclioModeDisabled])
-
   const FilesComponent = wrapComponentForNavbarNavigationTracking(Files)
   const DatasetsComponent = wrapComponentForNavbarNavigationTracking(Datasets)
   const DocumentsComponent = wrapComponentForNavbarNavigationTracking(Documents)
@@ -166,14 +154,13 @@ const App = () => {
   const FunctionsOldComponent = wrapComponentForNavbarNavigationTracking(FunctionsOld)
   const FunctionsComponent = wrapComponentForNavbarNavigationTracking(Functions)
 
-  const router = useMemo(() => {
-    if (nuclioRoutes === null) return null
-
-    const routes = createRoutesFromElements(
+  const router = createBrowserRouter(
+    createRoutesFromElements(
       <>
         <Route path="" element={<Page isHeaderShown={isHeaderShown} />}>
           <Route path="projects" element={<Projects />} />
-          <Route path="projects/:projectName">
+          <Route path="projects/:projectName" >
+            <Route index element={<Navigate replace to={PROJECT_MONITOR} />} />
             <Route path="real-time-functions/*" element={<RemoteNuclioRouteWrapper />} />
             <Route path="create-function/*" element={<RemoteNuclioRouteWrapper />} />
             <Route path="api-gateways/*" element={<RemoteNuclioRouteWrapper />} />
@@ -204,8 +191,7 @@ const App = () => {
             <Route path={JOBS_MONITORING_SCHEDULED_TAB} element={<ScheduledMonitoring />} />
             <Route path="*" element={<Navigate to={JOBS_MONITORING_JOBS_TAB} replace />} />
           </Route>
-
-          <Route path="projects/:projectName" element={<Navigate replace to={PROJECT_MONITOR} />} />
+          {/*<Route path="projects/:projectName" element={<Navigate replace to={PROJECT_MONITOR} />} />*/}
           <Route path={`projects/:projectName/${PROJECT_MONITOR}`} element={<ProjectMonitor />} />
 
           {[
@@ -420,25 +406,9 @@ const App = () => {
           <Route path="/" element={<Navigate replace to="projects" />} />
         </Route>
       </>
-    )
-
-    if (nuclioRoutes.length > 0) {
-      const wrappedNuclioRoutes = [
-        {
-          element: <RemoteNuclioRouteWrapper />,
-          children: nuclioRoutes
-        }
-      ]
-
-      const pageChildren = routes[0].children
-      const catchAllIndex = pageChildren.findIndex(r => r.path === '*')
-      pageChildren.splice(catchAllIndex, 0, ...wrappedNuclioRoutes)
-    }
-
-    return createBrowserRouter(routes, { basename: import.meta.env.VITE_PUBLIC_URL })
-  }, [nuclioRoutes, isHeaderShown, isDemoMode, isNuclioModeDisabled])
-
-  if (!router) return <LoaderForSuspenseFallback />
+    ),
+    { basename: import.meta.env.VITE_PUBLIC_URL }
+  )
 
   return (
     <div className="ml-app">
